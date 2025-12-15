@@ -1,0 +1,23 @@
+The reason of this project is to learn backend, Database and also get farmilar with database for a project.
+
+And also I wanna build my Dream ToDoLst Application and App for
+Web, Browser, and Mobile.
+
+
+So tasky is a TodoList Application and also a note app, i wanna do todlist my own way yh?
+
+i can decide to add like hmm, a spending  tracker to it to.
+
+So here is how Tasky works,
+
+the bard will have green, red, yellow, all the color possible but in the right level not deeep tho.
+
+
+so lets say i create a sheet. in the sheet i said its going to de called ToDOList.
+so today is monday, if i make like 5 todo list in there, its gonna be there then there be a place that count the numer of list in there
+lets say we go to tuesday now, still that same todolis i crated but another day the previous day is in archive but i can see the total toggle a place to see task i was to do yestday that i didt do yh?? you get? id share some photos tho.
+
+
+our logo is a green back with white checkmark double our fount is inter. haha yh 
+
+the first build is a web app okay. so yh. also note the start of this  must know is important, this project is really to learn and also build my self a cool stuff

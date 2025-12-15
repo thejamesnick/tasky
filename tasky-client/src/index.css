@@ -1,0 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --font-inter: 'Inter', sans-serif;
+
+  /* Tasky Color Palette */
+  --color-green-primary: #2ecc71;
+  --color-green-light: #e8f8f0;
+  --color-red-primary: #e74c3c;
+  --color-yellow-primary: #f1c40f;
+  
+  --color-text-main: #2c3e50;
+  --color-text-light: #7f8c8d;
+  --color-bg-main: #ffffff;
+  --color-bg-secondary: #f8f9fa;
+  --color-border: #ecf0f1;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-inter);
+  color: var(--color-text-main);
+  background-color: var(--color-bg-main);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}

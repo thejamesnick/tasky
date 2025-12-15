@@ -1,0 +1,215 @@
+# Maxcloud Naming
+
+1. Porcelain Models
+   - Pure White: Clean and bright.
+   - Smooth: Highly polished with soft, rounded "squircle" corners.
+   - Premium: Feels solid and high-quality.
+
+---
+
+## Porcelain Design Model - Detailed Documentation
+
+### Core Philosophy
+The Porcelain design model is a premium UI/UX aesthetic inspired by fine porcelain craftsmanship - clean, refined, and timeless. It emphasizes **subtle elegance over flashy effects**, creating interfaces that feel both sophisticated and effortless.
+
+### Visual Characteristics
+- **Pure White**: Clean, bright surfaces with high contrast for clarity
+- **Smooth**: Highly polished with soft, rounded "squircle" corners (continuous curves, not sharp edges)
+- **Premium**: Solid, high-quality feel through careful attention to spacing, shadows, and materials
+
+### Design Principles
+
+#### 1. Natural Motion (Apple-Inspired Physics)
+- Spring-based easing curves: `cubic-bezier(0.25, 0.46, 0.45, 0.94)`
+- Timing: 300-400ms for UI transitions (the sweet spot)
+- Subtle, purposeful animations - no exaggeration
+- Hardware-accelerated transforms for 60fps smoothness
+
+#### 2. Depth Through Subtlety
+- Minimal scaling (1-2% per layer)
+- Soft, progressive shadows with low opacity (8-15%)
+- Very subtle opacity fades (92-100%) to maintain crispness
+- Layered z-index for natural hierarchy
+
+#### 3. Refined Interactions
+- Gentle hover effects (2-5% scale, 50px lift)
+- No rotation unless absolutely necessary
+- Smooth state transitions with consistent timing
+- Visual feedback that feels responsive but not jarring
+
+#### 4. Premium Details
+- Squircle corners (16px border-radius)
+- Thin, semi-transparent borders (1-2px, 12-15% opacity)
+- Backdrop filters for depth (when needed)
+- Careful color palette with harmonious tones
+
+### The "Porcelain Test"
+A design passes the Porcelain test if it feels:
+1. **Effortless** - Interactions flow naturally without thinking
+2. **Refined** - Every detail is intentional and polished
+3. **Timeless** - Won't feel dated in 5 years
+4. **Premium** - Comparable to Apple, Stripe, or Linear's design quality
+
+---
+
+## Code Implementation
+
+### 1. Modal Component (Porcelain Style)
+```tsx
+// Squircle corners, soft shadows, clean backdrop
+const modalStyle = {
+  borderRadius: '16px',
+  backgroundColor: '#ffffff',
+  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
+  border: '1px solid rgba(0, 0, 0, 0.06)',
+  backdropFilter: 'blur(10px)',
+  padding: '1.5rem'
+};
+```
+
+### 2. Button Component (Porcelain Style)
+```tsx
+// Subtle hover, smooth transition, premium feel
+const buttonStyle = {
+  borderRadius: '12px',
+  padding: '0.75rem 1.5rem',
+  backgroundColor: '#f5f5f7',
+  border: 'none',
+  fontSize: '0.95rem',
+  fontWeight: 600,
+  cursor: 'pointer',
+  transition: 'all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)'
+};
+
+// Hover state
+const buttonHoverStyle = {
+  transform: 'translateY(-2px) scale(1.02)',
+  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)'
+};
+```
+
+### 3. Card Stack Animation (Accordion Style)
+```tsx
+// Apple-style card stack with depth
+const cardStyle = {
+  borderRadius: '16px',
+  backgroundColor: '#d8b4fe',
+  padding: '1rem',
+  // Progressive depth
+  transform: `scale(${1 - index * 0.01})`,
+  opacity: Math.max(1 - index * 0.02, 0.92),
+  // Soft, natural shadows
+  boxShadow: `0 ${2 + index * 0.5}px ${12 + index * 2}px rgba(0,0,0,${0.08 + index * 0.015})`,
+  // Compact accordion overlap
+  marginTop: index === 0 ? 0 : '-82px',
+  zIndex: history.length - index,
+  // Apple's spring timing
+  transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.4s ease',
+  willChange: 'transform',
+  border: '1px solid rgba(255,255,255,0.12)'
+};
+
+// Hover interaction - subtle lift
+const cardHoverStyle = {
+  transform: 'translateY(-50px) scale(1.02) translateZ(0)',
+  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15)',
+  opacity: '1',
+  zIndex: '1000'
+};
+```
+
+### 4. Color Picker (Porcelain Style)
+```tsx
+// Circular color swatches with smooth selection
+const colorSwatchStyle = {
+  width: '24px',
+  height: '24px',
+  borderRadius: '50%',
+  backgroundColor: color,
+  border: isSelected ? '2px solid #444' : '2px solid transparent',
+  cursor: 'pointer',
+  transition: 'transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+};
+
+// Hover state
+const colorSwatchHoverStyle = {
+  transform: 'scale(1.15)',
+  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)'
+};
+```
+
+---
+
+## Animation Philosophy
+
+### How We Achieved Pixel-Perfect Animations
+
+#### 1. Apple's Easing Curve
+We use Apple's signature easing: `cubic-bezier(0.25, 0.46, 0.45, 0.94)`
+- Natural deceleration (no bounce)
+- Feels responsive but not jarring
+- 400ms timing for the sweet spot
+
+#### 2. Layered Depth System
+```
+Card 1 (Top):    scale(1.00), opacity(1.00), z-index(7)
+Card 2:          scale(0.99), opacity(0.98), z-index(6)
+Card 3:          scale(0.98), opacity(0.96), z-index(5)
+...
+Card 7 (Bottom): scale(0.94), opacity(0.92), z-index(1)
+```
+
+#### 3. Progressive Shadows
+Shadows get deeper as cards go back:
+```
+Card 1: 0 2px 12px rgba(0,0,0,0.08)
+Card 2: 0 2.5px 14px rgba(0,0,0,0.095)
+Card 3: 0 3px 16px rgba(0,0,0,0.11)
+...
+```
+
+#### 4. Hover Interaction Flow
+1. **Trigger**: Mouse enters card
+2. **Lift**: translateY(-50px) - gentle upward motion
+3. **Scale**: scale(1.02) - subtle emphasis
+4. **Shadow**: Deeper shadow for elevation
+5. **Z-index**: Bring to front (z-index: 1000)
+6. **Opacity**: Full opacity (1.0)
+7. **Duration**: 400ms with spring easing
+
+#### 5. Hardware Acceleration
+- `translateZ(0)` forces GPU rendering
+- `willChange: 'transform'` hints browser optimization
+- Separate transitions for transform, shadow, opacity
+- No layout thrashing (only transform/opacity changes)
+
+### Button Animation Pattern
+```
+Rest State → Hover State → Active State → Rest State
+   ↓             ↓              ↓            ↓
+scale(1)    scale(1.02)    scale(0.98)   scale(1)
+y(0)        y(-2px)        y(0)          y(0)
+shadow(sm)  shadow(md)     shadow(sm)    shadow(sm)
+```
+
+### Modal Animation Pattern
+```
+Closed → Opening → Open → Closing → Closed
+  ↓         ↓        ↓        ↓         ↓
+opacity(0) opacity(1) opacity(1) opacity(0) opacity(0)
+scale(0.95) scale(1) scale(1) scale(0.95) scale(0.95)
+backdrop(0) backdrop(1) backdrop(1) backdrop(0) backdrop(0)
+```
+
+---
+
+## Key Takeaways
+
+1. **Less is More**: Subtle animations (1-2% scale) feel more premium than exaggerated ones
+2. **Timing Matters**: 300-400ms is the sweet spot for UI transitions
+3. **Physics-Based**: Use spring curves, not linear or ease-in-out
+4. **Depth Through Layers**: Progressive scaling + shadows + opacity = natural depth
+5. **Performance First**: GPU acceleration, willChange hints, avoid layout changes
+6. **Consistency**: Same easing curve across all animations creates cohesion
