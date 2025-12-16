@@ -27,9 +27,15 @@ async function generateIcons() {
     for (const icon of sizes) {
         const outputPath = path.join(PUBLIC_DIR, icon.name);
         try {
-            await sharp(SVG_PATH)
-                .resize(icon.size, icon.size)
-                .toFile(outputPath);
+            const instance = sharp(SVG_PATH).resize(icon.size, icon.size);
+
+            // Force PNG format for .ico extension to avoid Sharp error "Unsupported output format"
+            // Browsers are happy with a PNG inside a .ico file (or just named .ico)
+            if (icon.name.endsWith('.ico')) {
+                instance.png();
+            }
+
+            await instance.toFile(outputPath);
             console.log(`Generated: ${icon.name}`);
         } catch (err) {
             console.error(`Error generating ${icon.name}:`, err);
