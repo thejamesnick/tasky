@@ -99,36 +99,46 @@ const SheetView: React.FC = () => {
 
     return (
         <div style={{ maxWidth: '800px', margin: '0 auto', height: '100%', display: 'flex', flexDirection: 'column' }}>
-            {/* Header: DailyPill (Top Right) */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.5rem', width: '100%' }}>
-                <DailyPill
-                    date={sheet.target_date || new Date().toISOString().split('T')[0]}
-                    stats={stats}
-                    color={sheet.color || '#d8b4fe'}
-                    onChangeColor={handleColorChange}
-                    sheetId={sheet.id}
-                />
-            </div>
-
-            {/* Title Input */}
-            <div style={{ marginBottom: '1.5rem' }}>
+            {/* Header: Title + DailyPill Row */}
+            <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '1.5rem',
+                gap: '1rem',
+                minHeight: '40px' // Ensure height for the absolute back button alignment
+            }}>
+                {/* Title Input (Pushed right to avoid back button) */}
                 <input
                     value={sheet.title}
                     onChange={(e) => handleTitleChange(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="Untitled"
                     style={{
-                        fontSize: '2.5rem',
+                        fontSize: '1.5rem',
                         fontWeight: 700,
                         border: 'none',
                         outline: 'none',
-                        width: '100%',
+                        flex: 1,
                         backgroundColor: 'transparent',
                         color: 'var(--color-text-main)',
                         fontFamily: 'var(--font-inter)',
-                        padding: 0
+                        padding: 0,
+                        marginLeft: '2.5rem', // Space for the absolute back button
+                        minWidth: 0
                     }}
                 />
+
+                {/* DailyPill */}
+                <div style={{ flexShrink: 0 }}>
+                    <DailyPill
+                        date={sheet.target_date || new Date().toISOString().split('T')[0]}
+                        stats={stats}
+                        color={sheet.color || '#d8b4fe'}
+                        onChangeColor={handleColorChange}
+                        sheetId={sheet.id}
+                    />
+                </div>
             </div>
 
             {/* Editor Area */}

@@ -216,33 +216,31 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 flexDirection: 'column',
                 minWidth: 0
             }}>
-                {/* Top Bar (Toggle Sidebar) */}
-                <div style={{ padding: '1rem', paddingBottom: '0.5rem', display: 'flex', alignItems: 'center' }}>
+                {/* Top Bar (Toggle Sidebar) - Mobile Absolute Position */}
+                {!isSidebarOpen && (
                     <button
-                        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                        onClick={() => setIsSidebarOpen(true)}
                         style={{
-                            background: 'none',
+                            position: 'absolute',
+                            top: '1rem',
+                            left: '1rem',
+                            zIndex: 20,
                             border: 'none',
                             cursor: 'pointer',
                             color: '#1d1d1f',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '4px',
-                            fontWeight: 600,
-                            fontSize: '1rem',
-                            padding: 0
+                            justifyContent: 'center',
+                            padding: '4px',
+                            background: 'rgba(255,255,255,0.8)', // slight background for legibility if needed
+                            borderRadius: '50%'
                         }}>
-                        {isSidebarOpen ? <ChevronLeft size={24} /> : (
-                            <>
-                                <ChevronLeft size={24} />
-                                <span>All Note</span>
-                            </>
-                        )}
+                        <ChevronLeft size={24} />
                     </button>
-                </div>
+                )}
 
                 {/* Content Area */}
-                <div className="content-padding" style={{ flex: 1, overflowY: 'auto' }}>
+                <div className="content-padding" style={{ flex: 1, overflowY: 'auto', position: 'relative' }}>
                     {children}
                 </div>
             </main>
