@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, Plus, ChevronLeft, Trash2 } from 'lucide-react';
 import Modal from './Modal';
 import { api } from '../lib/api';
+import logo from '../assets/logo.svg';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -132,13 +133,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                                 fontWeight: 600,
                                 color: '#444'
                             }}>
-                                <img src="/src/assets/logo.svg" alt="Tasky Logo" style={{ width: '20px', height: '20px' }} />
+                                <img src={logo} alt="Tasky Logo" style={{ width: '20px', height: '20px' }} />
                                 <span>Tasky</span>
                             </div>
                         </>
                     ) : (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: '#444' }}>
-                            <img src="/src/assets/logo.svg" alt="Tasky Logo" style={{ width: '20px', height: '20px' }} />
+                            <img src={logo} alt="Tasky Logo" style={{ width: '20px', height: '20px' }} />
                             <span>Tasky</span>
                         </div>
                     )}

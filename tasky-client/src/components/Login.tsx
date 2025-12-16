@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
-
+import logo from '../assets/logo.svg';
 
 const Login: React.FC = () => {
     const navigate = useNavigate();
@@ -68,7 +68,7 @@ const Login: React.FC = () => {
                     alignItems: 'center',
                     justifyContent: 'center'
                 }}>
-                    <img src="/src/assets/logo.svg" alt="Tasky Logo" style={{ width: '32px', height: '32px' }} />
+                    <img src={logo} alt="Tasky Logo" style={{ width: '32px', height: '32px' }} />
                 </div>
                 <h1 style={{
                     fontSize: '2rem',

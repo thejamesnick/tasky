@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import Login from './Login';
+import logo from '../assets/logo.svg';
 
 const Onboarding: React.FC = () => {
     // Check if user has already seen onboarding
@@ -21,7 +22,7 @@ const Onboarding: React.FC = () => {
         {
             title: "Welcome to Tasky",
             description: "The simplest way to organize your tasks and notes.",
-            icon: <img src="logo.svg" alt="Tasky Logo" style={{ width: '48px', height: '48px' }} />
+            icon: <img src={logo} alt="Tasky Logo" style={{ width: '48px', height: '48px' }} />
         },
         {
             title: "Stay Organized",
