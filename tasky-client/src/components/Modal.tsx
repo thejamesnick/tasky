@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import ReactDOM from 'react-dom';
 
 interface ModalProps {
     isOpen: boolean;
@@ -9,9 +10,16 @@ interface ModalProps {
 }
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, footer }) => {
-    if (!isOpen) return null;
+    const [mounted, setMounted] = useState(false);
 
-    return (
+    useEffect(() => {
+        setMounted(true);
+        return () => setMounted(false);
+    }, []);
+
+    if (!isOpen || !mounted) return null;
+
+    return ReactDOM.createPortal(
         <div style={{
             position: 'fixed',
             top: 0,
@@ -23,7 +31,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, footer 
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 1000,
+            zIndex: 9999, // Increased z-index
             animation: 'fadeIn 0.2s ease-out'
         }} onClick={onClose}>
             <div style={{
@@ -75,7 +83,8 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, footer 
                     to { transform: scale(1); opacity: 1; }
                 }
             `}</style>
-        </div>
+        </div>,
+        document.body
     );
 };
 

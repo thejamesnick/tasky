@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Plus, ChevronLeft, Trash2 } from 'lucide-react';
+import { useLayout } from '../context/LayoutContext';
 import Modal from './Modal';
 import { api } from '../lib/api';
 import logo from '../assets/logo.svg';
@@ -15,6 +16,7 @@ interface Sheet {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
+    const { isHeaderCollapsed, headerTitle, headerElements } = useLayout();
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [sheets, setSheets] = useState<Sheet[]>([]);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -221,7 +223,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 minWidth: 0
             }}>
                 {/* Top Bar (Toggle Sidebar / Back) - Dedicated Row */}
-                <div style={{ padding: '0.5rem 1rem 0 1rem', display: 'flex', alignItems: 'center', minHeight: '44px' }}>
+                <div style={{ padding: '0.5rem 1rem 0 1rem', display: 'flex', alignItems: 'center', minHeight: '44px', gap: '1rem' }}>
                     <button
                         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                         style={{
@@ -238,6 +240,34 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                         }}>
                         {isSidebarOpen ? <ChevronLeft size={28} /> : <ChevronLeft size={32} />}
                     </button>
+
+                    {/* Sticky Header Content */}
+                    <div style={{
+                        flex: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'flex-start', // Align left next to back button
+                        gap: '0.75rem',
+                        opacity: isHeaderCollapsed ? 1 : 0,
+                        transform: isHeaderCollapsed ? 'translateY(0)' : 'translateY(10px)', // Subtle slide up
+                        transition: 'opacity 0.2s ease, transform 0.2s ease',
+                        pointerEvents: isHeaderCollapsed ? 'auto' : 'none',
+                        overflow: 'hidden'
+                    }}>
+                        <span style={{
+                            fontWeight: 600,
+                            fontSize: '1.1rem',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            maxWidth: '50%'
+                        }}>
+                            {headerTitle}
+                        </span>
+                        <div style={{ transform: 'scale(0.85)', transformOrigin: 'left center' }}>
+                            {headerElements}
+                        </div>
+                    </div>
                 </div>
 
                 {/* Content Area */}

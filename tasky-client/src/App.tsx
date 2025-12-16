@@ -5,6 +5,7 @@ import { supabase } from './lib/supabase';
 import './index.css';
 
 import Layout from './components/Layout';
+import { LayoutProvider } from './context/LayoutContext';
 import Welcome from './components/Welcome';
 import SheetView from './components/SheetView';
 import DailyView from './components/DailyView';
@@ -80,13 +81,15 @@ function App() {
           <Route path="/login" element={<Onboarding />} />
           <Route path="/*" element={
             <ProtectedRoute>
-              <Layout>
-                <Routes>
-                  <Route path="/" element={<Welcome />} />
-                  <Route path="/sheets/:id" element={<SheetView />} />
-                  <Route path="/daily/:date" element={<DailyView />} />
-                </Routes>
-              </Layout>
+              <LayoutProvider>
+                <Layout>
+                  <Routes>
+                    <Route path="/" element={<Welcome />} />
+                    <Route path="/sheets/:id" element={<SheetView />} />
+                    <Route path="/daily/:date" element={<DailyView />} />
+                  </Routes>
+                </Layout>
+              </LayoutProvider>
             </ProtectedRoute>
           } />
         </Routes>

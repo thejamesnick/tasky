@@ -31,12 +31,16 @@
 }
 
 html,
-body {
+body,
+#root {
   height: 100%;
   width: 100%;
-  overflow-x: hidden;
-  overscroll-behavior-y: none;
-  /* Prevent rubber banding on some devices */
+  overflow: hidden;
+  /* Strictly prevent document scroll */
+  position: fixed;
+  /* Lock viewport to prevent shift on keyboard open */
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 body {

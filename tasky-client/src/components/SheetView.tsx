@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import Editor, { type EditorHandle } from './Editor';
 import DailyPill from './DailyPill';
 import { api, type Sheet } from '../lib/api';
+import { useLayout } from '../context/LayoutContext';
 
 // Simple debounce function
 const debounce = (func: Function, wait: number) => {
@@ -15,10 +16,12 @@ const debounce = (func: Function, wait: number) => {
 
 const SheetView: React.FC = () => {
     const { id } = useParams<{ id: string }>();
+    const { setHeaderTitle, setHeaderElements, setIsHeaderCollapsed } = useLayout();
     const [sheet, setSheet] = useState<Sheet | null>(null);
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({ total: 0, done: 0 });
     const editorRef = React.useRef<EditorHandle>(null);
+    const headerRef = React.useRef<HTMLDivElement>(null);
 
     // Calculate stats from HTML content
     const calculateStats = (html: string) => {
@@ -94,20 +97,71 @@ const SheetView: React.FC = () => {
         }
     };
 
+    // Sync header info with LayoutContext
+    useEffect(() => {
+        if (sheet) {
+            setHeaderTitle(sheet.title || 'Untitled');
+            setHeaderElements(
+                <DailyPill
+                    date={sheet.target_date || new Date().toISOString().split('T')[0]}
+                    stats={stats}
+                    color={sheet.color || '#d8b4fe'}
+                    onChangeColor={handleColorChange}
+                    sheetId={sheet.id}
+                />
+            );
+        }
+    }, [sheet, stats]); // Update when sheet or stats change (stats affect the pill count)
+
+    // Setup Intersection Observer for sticky header
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                // If the header row is not intersecting (scrolled out of view), show the sticky header (collapse main)
+                // We use a small threshold or negative margin to trigger it slightly before it's fully gone if desired
+                // or just when it leaves.
+                // boundingClientRect.top < 0 checks if it's scrolled *above* the viewport
+                const isScrolledPast = !entry.isIntersecting && entry.boundingClientRect.top < 0;
+                setIsHeaderCollapsed(isScrolledPast);
+            },
+            {
+                threshold: 0, // Trigger when even 1px is out? Actually when 0% is visible means it's gone.
+                // If threshold is 0.0, the callback is invoked when the target enters or exits the visibility.
+                rootMargin: "-20px 0px 0px 0px" // Trigger slightly before it's completely gone/ or after?
+                // Let's stick to default for now, verify iteratively.
+            }
+        );
+
+        if (headerRef.current) {
+            observer.observe(headerRef.current);
+        }
+
+        return () => {
+            observer.disconnect();
+            // Cleanup: ensure sticky header is hidden when unmounting
+            setIsHeaderCollapsed(false);
+            setHeaderTitle('');
+            setHeaderElements(null);
+        };
+    }, []);
+
     if (loading) return <div style={{ padding: '2rem', color: '#888' }}>Loading...</div>;
     if (!sheet) return <div style={{ padding: '2rem', color: '#888' }}>Select a note to view</div>;
 
     return (
         <div style={{ maxWidth: '800px', margin: '0 auto', height: '100%', display: 'flex', flexDirection: 'column' }}>
             {/* Header: Title + DailyPill Row */}
-            <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: '1.5rem',
-                gap: '1rem',
-                minHeight: '40px' // Ensure height for the absolute back button alignment
-            }}>
+            <div
+                ref={headerRef}
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: '1.5rem',
+                    gap: '1rem',
+                    minHeight: '40px' // Ensure height for the absolute back button alignment
+                }}>
+                {/* Title Input ... */}
                 {/* Title Input (Pushed right to avoid back button) */}
                 <input
                     value={sheet.title}
