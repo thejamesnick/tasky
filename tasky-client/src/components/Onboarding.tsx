@@ -3,7 +3,19 @@ import { ArrowRight } from 'lucide-react';
 import Login from './Login';
 
 const Onboarding: React.FC = () => {
-    const [step, setStep] = useState(0);
+    // Check if user has already seen onboarding
+    const [step, setStep] = useState(() => {
+        const hasSeen = localStorage.getItem('tasky_has_seen_onboarding');
+        return hasSeen ? 3 : 0; // If seen, jump to step 3 (Login), else start at 0
+    });
+
+    const handleNext = () => {
+        if (step === steps.length - 1) {
+            // User is completing the onboarding flow
+            localStorage.setItem('tasky_has_seen_onboarding', 'true');
+        }
+        setStep(step + 1);
+    };
 
     const steps = [
         {
@@ -99,7 +111,7 @@ const Onboarding: React.FC = () => {
             </div>
 
             <button
-                onClick={() => setStep(step + 1)}
+                onClick={handleNext}
                 style={{
                     width: '100%',
                     maxWidth: '320px',
