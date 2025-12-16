@@ -35,9 +35,9 @@ const Login: React.FC = () => {
                 },
             });
             if (error) throw error;
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error logging in:', error);
-            alert('Error logging in with Google');
+            alert(`Error logging in: ${error.message || 'Unknown error'}`);
         }
     };
 
