@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, Plus, ChevronLeft, Trash2 } from 'lucide-react';
+import { Plus, ChevronLeft, Trash2 } from 'lucide-react';
 import Modal from './Modal';
 import { api } from '../lib/api';
 import logo from '../assets/logo.svg';
@@ -97,7 +97,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     };
 
     return (
-        <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', backgroundColor: 'white' }}>
+        <div style={{ display: 'flex', height: '100dvh', width: '100%', overflow: 'hidden', backgroundColor: 'white' }}>
             {/* Sidebar */}
             <aside style={{
                 width: isSidebarOpen ? (isMobile ? '100vw' : '280px') : '0px',
@@ -217,16 +217,32 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 minWidth: 0
             }}>
                 {/* Top Bar (Toggle Sidebar) */}
-                <div style={{ padding: '1rem', borderBottom: '1px solid transparent' }}>
-                    <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} style={{
-                        background: 'none', border: 'none', cursor: 'pointer', color: '#888'
-                    }}>
-                        {isSidebarOpen ? <ChevronLeft size={24} /> : <Menu size={24} />}
+                <div style={{ padding: '1rem', paddingBottom: '0.5rem', display: 'flex', alignItems: 'center' }}>
+                    <button
+                        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: '#1d1d1f',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            fontWeight: 600,
+                            fontSize: '1rem',
+                            padding: 0
+                        }}>
+                        {isSidebarOpen ? <ChevronLeft size={24} /> : (
+                            <>
+                                <ChevronLeft size={24} />
+                                <span>All Note</span>
+                            </>
+                        )}
                     </button>
                 </div>
 
                 {/* Content Area */}
-                <div style={{ flex: 1, overflowY: 'auto', padding: '0 2rem 2rem 2rem' }}>
+                <div className="content-padding" style={{ flex: 1, overflowY: 'auto' }}>
                     {children}
                 </div>
             </main>

@@ -26,11 +26,11 @@ const DailyPill: React.FC<DailyPillProps> = ({ date, stats, color, onChangeColor
                 style={{
                     backgroundColor: color,
                     color: 'white',
-                    padding: '0.5rem 1rem',
+                    padding: '0.4rem 0.8rem',
                     borderRadius: '12px 12px 0 0', // Rounded top, square bottom
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '1rem',
+                    gap: '0.5rem',
                     fontWeight: 600,
                     fontSize: '0.9rem',
                     cursor: 'pointer',
