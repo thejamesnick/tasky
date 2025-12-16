@@ -216,31 +216,28 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 flexDirection: 'column',
                 minWidth: 0
             }}>
-                {/* Top Bar (Toggle Sidebar) - Mobile Absolute Position */}
-                {!isSidebarOpen && (
+                {/* Top Bar (Toggle Sidebar / Back) - Dedicated Row */}
+                <div style={{ padding: '0.5rem 1rem 0 1rem', display: 'flex', alignItems: 'center', minHeight: '44px' }}>
                     <button
-                        onClick={() => setIsSidebarOpen(true)}
+                        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                         style={{
-                            position: 'absolute',
-                            top: '1rem',
-                            left: '1rem',
-                            zIndex: 20,
+                            background: 'none',
                             border: 'none',
                             cursor: 'pointer',
                             color: '#1d1d1f',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            padding: '4px',
-                            background: 'rgba(255,255,255,0.8)', // slight background for legibility if needed
-                            borderRadius: '50%'
+                            padding: '8px',
+                            borderRadius: '50%',
+                            marginLeft: '-8px' // Align visually with content padding
                         }}>
-                        <ChevronLeft size={24} />
+                        {isSidebarOpen ? <ChevronLeft size={28} /> : <ChevronLeft size={32} />}
                     </button>
-                )}
+                </div>
 
                 {/* Content Area */}
-                <div className="content-padding" style={{ flex: 1, overflowY: 'auto', position: 'relative' }}>
+                <div className="content-padding" style={{ flex: 1, overflowY: 'auto' }}>
                     {children}
                 </div>
             </main>

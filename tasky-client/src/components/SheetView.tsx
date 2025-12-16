@@ -124,7 +124,6 @@ const SheetView: React.FC = () => {
                         color: 'var(--color-text-main)',
                         fontFamily: 'var(--font-inter)',
                         padding: 0,
-                        marginLeft: '2.5rem', // Space for the absolute back button
                         minWidth: 0
                     }}
                 />
