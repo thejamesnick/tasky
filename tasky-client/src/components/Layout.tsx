@@ -113,15 +113,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 height: '100%'
             }}>
                 {/* Sidebar Header */}
-                <div style={{ padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>
+                <div style={{ padding: '0.5rem 1rem 0 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', minHeight: '44px' }}>
                     {isMobile ? (
                         <>
                             <button onClick={() => setIsSidebarOpen(false)} style={{
                                 background: 'none', border: 'none', cursor: 'pointer', color: '#666',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                zIndex: 20
+                                zIndex: 20,
+                                padding: '8px',
+                                marginLeft: '-8px'
                             }}>
-                                <ChevronLeft size={24} />
+                                <ChevronLeft size={32} />
                             </button>
                             <div style={{
                                 position: 'absolute',
@@ -133,27 +135,29 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                                 fontWeight: 600,
                                 color: '#444'
                             }}>
-                                <img src={logo} alt="Tasky Logo" style={{ width: '20px', height: '20px' }} />
-                                <span>Tasky</span>
+                                <img src={logo} alt="Tasky Logo" style={{ width: '28px', height: '28px' }} />
+                                <span style={{ fontSize: '1.2rem' }}>Tasky</span>
                             </div>
                         </>
                     ) : (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: '#444' }}>
-                            <img src={logo} alt="Tasky Logo" style={{ width: '20px', height: '20px' }} />
-                            <span>Tasky</span>
+                            <img src={logo} alt="Tasky Logo" style={{ width: '28px', height: '28px' }} />
+                            <span style={{ fontSize: '1.2rem' }}>Tasky</span>
                         </div>
                     )}
                     <button onClick={createSheet} style={{
                         background: 'none', border: 'none', cursor: 'pointer', color: '#666',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        zIndex: 20
+                        zIndex: 20,
+                        padding: '8px',
+                        marginRight: '-8px'
                     }}>
-                        <Plus size={24} />
+                        <Plus size={32} />
                     </button>
                 </div>
 
                 {/* Notes List */}
-                <div style={{ flex: 1, overflowY: 'auto', padding: '0 0.5rem' }}>
+                <div style={{ flex: 1, overflowY: 'auto', padding: '0 1rem' }}>
                     {sheets.map(sheet => (
                         <div
                             key={sheet.id}

@@ -9,13 +9,14 @@ import './Editor.css';
 interface EditorProps {
     content: string;
     onChange: (content: string) => void;
+    color?: string;
 }
 
 export interface EditorHandle {
     focus: () => void;
 }
 
-const Editor = React.forwardRef<EditorHandle, EditorProps>(({ content, onChange }, ref) => {
+const Editor = React.forwardRef<EditorHandle, EditorProps>(({ content, onChange, color }, ref) => {
     const editor = useEditor({
         extensions: [
             StarterKit,
@@ -52,9 +53,10 @@ const Editor = React.forwardRef<EditorHandle, EditorProps>(({ content, onChange 
     }
 
     return (
-        <div className="editor-container">
-
-
+        <div
+            className="editor-container"
+            style={{ '--checkbox-color': color || 'var(--color-green-primary)' } as React.CSSProperties}
+        >
             <EditorContent editor={editor} />
         </div>
     );

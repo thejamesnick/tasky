@@ -69,8 +69,8 @@ ul[data-type="taskList"] li input[type="checkbox"]::before {
 }
 
 ul[data-type="taskList"] li input[type="checkbox"]:checked {
-    background-color: var(--color-green-primary);
-    border-color: var(--color-green-primary);
+    background-color: var(--checkbox-color, var(--color-green-primary));
+    border-color: var(--checkbox-color, var(--color-green-primary));
 }
 
 ul[data-type="taskList"] li input[type="checkbox"]:checked::before {

@@ -142,7 +142,12 @@ const SheetView: React.FC = () => {
 
             {/* Editor Area */}
             <div style={{ flex: 1 }}>
-                <Editor ref={editorRef} content={sheet.content || ''} onChange={handleContentChange} />
+                <Editor
+                    ref={editorRef}
+                    content={sheet.content || ''}
+                    onChange={handleContentChange}
+                    color={sheet.color}
+                />
             </div>
         </div>
     );
