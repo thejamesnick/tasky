@@ -208,9 +208,16 @@ export const api = {
     },
 
     createSheet: async (title: string = 'Untitled') => {
+        const today = new Date().toISOString().split('T')[0];
+        const groupId = crypto.randomUUID();
+
         const { data, error } = await supabase
             .from('sheets')
-            .insert([{ title }])
+            .insert([{
+                title,
+                target_date: today,
+                group_id: groupId
+            }])
             .select()
             .single();
 
