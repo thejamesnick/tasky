@@ -9,6 +9,7 @@ export interface Sheet {
     target_date: string | null;
     group_id: string | null;
     created_at: string;
+    updated_at: string;
 }
 
 export interface Task {
@@ -28,10 +29,43 @@ export const api = {
         const { data, error } = await supabase
             .from('sheets')
             .select('*')
-            .order('updated_at', { ascending: false });
+            .order('updated_at', { ascending: false }); // Keep this order for initial fetch
 
         if (error) throw error;
-        return data as Sheet[];
+        const sheets = data as Sheet[];
+
+        const uniqueSheets = new Map<string, Sheet>(); // To store the latest sheet for each group_id
+        const plainSheets: Sheet[] = []; // Sheets without a group_id
+
+        sheets.forEach(s => {
+            if (s.group_id) {
+                const existing = uniqueSheets.get(s.group_id);
+                // Since we ordered by updated_at desc, we prioritize the first one we see?
+                // Or we should order by target_date? Usually "Latest" means target_date or created_at.
+                // Let's sort the data array first by target_date desc to be sure.
+
+                // Better approach: Let's do client side sorting to be safe
+                if (!existing) {
+                    uniqueSheets.set(s.group_id, s);
+                } else {
+                    // If we have an existing one, check if current 's' is newer in terms of target_date
+                    // (Handle case where updated_at might be misleading if we edited an old note)
+                    if ((s.target_date || '') > (existing.target_date || '')) {
+                        uniqueSheets.set(s.group_id, s);
+                    }
+                }
+            } else {
+                plainSheets.push(s);
+            }
+        });
+
+        // Combine unique grouped sheets and plain sheets
+        const result = [...Array.from(uniqueSheets.values()), ...plainSheets];
+
+        // Re-sort by updated_at or created_at to keep sidebar fresh
+        result.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+
+        return result;
     },
 
     getSheet: async (id: number) => {
@@ -39,6 +73,47 @@ export const api = {
             .from('sheets')
             .select('*')
             .eq('id', id)
+            .single();
+
+        if (error) throw error;
+        return data as Sheet;
+    },
+
+    createDailyFollowUp: async (baseSheetId: number, title: string, content: string = '', color: string = '') => {
+        // Fetch base sheet to match group_id
+        const { data: baseSheet } = await supabase.from('sheets').select('*').eq('id', baseSheetId).single();
+        if (!baseSheet) throw new Error("Base sheet not found");
+
+        let groupId = baseSheet.group_id;
+        if (!groupId) {
+            groupId = crypto.randomUUID();
+            // Retroactively fix base sheet?
+            await supabase.from('sheets').update({ group_id: groupId }).eq('id', baseSheetId);
+        }
+
+        const today = new Date().toISOString().split('T')[0];
+
+        // Ensure no duplicate exists just in case
+        const { data: existing } = await supabase
+            .from('sheets')
+            .select('*')
+            .eq('group_id', groupId)
+            .eq('target_date', today)
+            .single();
+
+        if (existing) return existing as Sheet;
+
+        const { data, error } = await supabase
+            .from('sheets')
+            .insert([{
+                title, // Should match or be what user typed
+                group_id: groupId,
+                target_date: today,
+                color: color || baseSheet.color,
+                content: content
+                // user_id handled by RLS, created_at handled by default
+            }])
+            .select()
             .single();
 
         if (error) throw error;
@@ -54,11 +129,12 @@ export const api = {
             .single();
 
         if (sheetError) throw sheetError;
-        if (!currentSheet || !currentSheet.group_id) {
-            // If no group_id, maybe it's just this sheet in history or error?
-            // For now, let's return just this sheet if no group found, or empty array.
-            // But valid flow implies group_id exists if we want history.
-            return [];
+        if (!currentSheet) return []; // Should not happen if ID exists
+
+        if (!currentSheet.group_id) {
+            // If no group_id, this sheet has no history history other than itself.
+            // Return it so the user at least sees the current card.
+            return [currentSheet as Sheet];
         }
 
         const { data, error } = await supabase
@@ -89,6 +165,16 @@ export const api = {
             .from('sheets')
             .update({ ...updates, updated_at: new Date().toISOString() })
             .eq('id', id);
+
+        if (error) throw error;
+    },
+
+    // Update ALL sheets in the same group (e.g. for renaming the whole "Journal")
+    updateSheetGroup: async (groupId: string, updates: Partial<Sheet>) => {
+        const { error } = await supabase
+            .from('sheets')
+            .update({ ...updates, updated_at: new Date().toISOString() })
+            .eq('group_id', groupId);
 
         if (error) throw error;
     },

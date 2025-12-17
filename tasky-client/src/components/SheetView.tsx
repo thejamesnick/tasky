@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import Editor, { type EditorHandle } from './Editor';
 import DailyPill from './DailyPill';
 import { api, type Sheet } from '../lib/api';
@@ -16,10 +16,19 @@ const debounce = (func: Function, wait: number) => {
 
 const SheetView: React.FC = () => {
     const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
     const { setHeaderTitle, setHeaderElements, setIsHeaderCollapsed } = useLayout();
+
+    // State
     const [sheet, setSheet] = useState<Sheet | null>(null);
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({ total: 0, done: 0 });
+
+    // Virtual State: If true, we are "pretending" to be on a new day, but haven't saved yet
+    const [isVirtualToday, setIsVirtualToday] = useState(false);
+    // Determine the effective date we are showing
+    const [displayDate, setDisplayDate] = useState<string>('');
+
     const editorRef = React.useRef<EditorHandle>(null);
     const headerRef = React.useRef<HTMLDivElement>(null);
 
@@ -36,10 +45,32 @@ const SheetView: React.FC = () => {
     useEffect(() => {
         if (id) {
             setLoading(true);
+            setIsVirtualToday(false);
+
             api.getSheet(Number(id))
                 .then(data => {
-                    setSheet(data);
-                    calculateStats(data.content || '');
+                    const today = new Date().toISOString().split('T')[0];
+                    const sheetDate = data.target_date || data.created_at.split('T')[0];
+
+                    if (sheetDate < today) {
+                        // Rollover time!
+                        // We keep the old sheet data for reference (title, color, id for history),
+                        // but we clear content and set date to today for the UI.
+                        setIsVirtualToday(true);
+                        setDisplayDate(today);
+
+                        // Show "fresh" slate stats
+                        setStats({ total: 0, done: 0 });
+
+                        // We intentionally DON'T set 'sheet' to the old data directly for everything,
+                        // or we shadow it. Let's store the *base* sheet.
+                        setSheet(data);
+                    } else {
+                        // Current day sheet, load normally
+                        setSheet(data);
+                        setDisplayDate(sheetDate);
+                        calculateStats(data.content || '');
+                    }
                     setLoading(false);
                 })
                 .catch(err => {
@@ -49,30 +80,88 @@ const SheetView: React.FC = () => {
         }
     }, [id]);
 
+    // Helper to "Realize" the virtual sheet (Create it in DB)
+    const realizeSheet = async (initialTitle: string, initialContent: string, initialColor: string) => {
+        if (!sheet) return null;
+
+        // Use the API to create a NEW sheet in the same group
+        try {
+            const today = new Date().toISOString().split('T')[0];
+            // If no group ID existed on the old sheet, the API might need to handle creating a new group ID?
+            // Actually, we should probably ensure the OLD sheet has a group ID first if it's missing?
+            // Or just rely on our createSheet logic that assigns one if passed?
+            // Our api.createSheet handles new sheets. We need a way to 'continue' a group.
+
+            // Let's modify usage of api.createSheet or add a new method?
+            // Actually, best to update `api.ts` to strictly support "Create Next in Group" or we do it efficiently here.
+            // Let's assume we can pass group_id to createSheet (we'll need to update api signature if not present, 
+            // but for now let's check what `createSheet` accepts).
+            // Looking at api.ts, createSheet takes (title). 
+            // We need to update api.ts to accept optional params.
+
+            // For this step, I'll update api.createSheet call assuming I will update the API signature in next step.
+            // OR I can use supabase directly here if really needed, but cleaner to update API.
+            // I'll call `api.createNextSheet(sheet.id, ...)`? 
+
+            // Let's implement `api.continueSheet(baseSheetId, ...)` or similar.
+            // For now, let's call a new method we will add: `api.createDailyFollowUp(baseSheetId, title, content)`
+
+            const newSheet = await api.createDailyFollowUp(sheet.id, initialTitle, initialContent, initialColor);
+
+            setSheet(newSheet);
+            setIsVirtualToday(false);
+            setDisplayDate(newSheet.target_date || today);
+
+            // Update URL
+            navigate(`/sheets/${newSheet.id}`, { replace: true });
+            return newSheet;
+        } catch (e) {
+            console.error("Failed to create daily sheet", e);
+            return null;
+        }
+    };
+
     // Create a debounced save function
     const saveContent = useCallback(
-        debounce(async (newContent: string, sheetId: number) => {
+        debounce(async (newContent: string, currentSheet: Sheet) => {
             try {
-                await api.updateSheet(sheetId, { content: newContent });
+                await api.updateSheet(currentSheet.id, { content: newContent });
             } catch (err) {
                 console.error('Error saving content:', err);
             }
         }, 1000),
-        [id]
+        []
     );
 
-    const handleContentChange = (newContent: string) => {
-        if (sheet && id) {
-            calculateStats(newContent);
-            saveContent(newContent, Number(id));
+    const handleContentChange = async (newContent: string) => {
+        if (!sheet) return;
+
+        calculateStats(newContent);
+
+        if (isVirtualToday) {
+            // First edit on a virtual day! Create the sheet.
+            await realizeSheet(sheet.title, newContent, sheet.color);
+        } else {
+            // Normal save
+            saveContent(newContent, sheet);
         }
     };
 
     const handleTitleChange = async (newTitle: string) => {
-        if (sheet && id) {
-            setSheet({ ...sheet, title: newTitle });
+        if (!sheet) return;
+
+        // Optimistic update
+        setSheet({ ...sheet, title: newTitle });
+
+        if (isVirtualToday) {
+            await realizeSheet(newTitle, '', sheet.color);
+        } else {
             try {
-                await api.updateSheet(Number(id), { title: newTitle });
+                if (sheet.group_id) {
+                    await api.updateSheetGroup(sheet.group_id, { title: newTitle });
+                } else {
+                    await api.updateSheet(sheet.id, { title: newTitle });
+                }
             } catch (err) {
                 console.error('Error saving title:', err);
             }
@@ -80,10 +169,17 @@ const SheetView: React.FC = () => {
     }
 
     const handleColorChange = async (newColor: string) => {
-        if (sheet && id) {
-            setSheet({ ...sheet, color: newColor });
+        if (!sheet) return;
+
+        setSheet({ ...sheet, color: newColor });
+
+        if (isVirtualToday) {
+            await realizeSheet(sheet.title, '', newColor);
+        } else {
             try {
-                await api.updateSheet(Number(id), { color: newColor });
+                // Only update THIS sheet's color, not the group. 
+                // Each day can have its own vibe.
+                await api.updateSheet(sheet.id, { color: newColor });
             } catch (err) {
                 console.error('Error saving color:', err);
             }
@@ -103,15 +199,19 @@ const SheetView: React.FC = () => {
             setHeaderTitle(sheet.title || 'Untitled');
             setHeaderElements(
                 <DailyPill
-                    date={sheet.target_date || new Date().toISOString().split('T')[0]}
+                    // If virtual, we show Today. If real, we show sheet date.
+                    date={displayDate || new Date().toISOString().split('T')[0]}
                     stats={stats}
                     color={sheet.color || '#d8b4fe'}
                     onChangeColor={handleColorChange}
+                    // IMPORTANT: History uses the ID. 
+                    // If virtual, we pass the OLD ID. Accessing history from the old ID is valid (same group).
+                    // If real, we pass the current ID.
                     sheetId={sheet.id}
                 />
             );
         }
-    }, [sheet, stats]); // Update when sheet or stats change (stats affect the pill count)
+    }, [sheet, stats, displayDate, isVirtualToday]);
 
     // Setup Intersection Observer for sticky header
     useEffect(() => {
@@ -147,6 +247,9 @@ const SheetView: React.FC = () => {
 
     if (loading) return <div style={{ padding: '2rem', color: '#888' }}>Loading...</div>;
     if (!sheet) return <div style={{ padding: '2rem', color: '#888' }}>Select a note to view</div>;
+
+    // Computed content to render: Empty if virtual, otherwise sheet content
+    const contentToRender = isVirtualToday ? '' : (sheet.content || '');
 
     return (
         <div style={{ maxWidth: '800px', margin: '0 auto', height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -185,7 +288,7 @@ const SheetView: React.FC = () => {
                 {/* DailyPill */}
                 <div style={{ flexShrink: 0 }}>
                     <DailyPill
-                        date={sheet.target_date || new Date().toISOString().split('T')[0]}
+                        date={displayDate}
                         stats={stats}
                         color={sheet.color || '#d8b4fe'}
                         onChangeColor={handleColorChange}
@@ -198,7 +301,7 @@ const SheetView: React.FC = () => {
             <div style={{ flex: 1 }}>
                 <Editor
                     ref={editorRef}
-                    content={sheet.content || ''}
+                    content={contentToRender}
                     onChange={handleContentChange}
                     color={sheet.color}
                 />
