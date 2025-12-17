@@ -120,8 +120,8 @@ const SheetView: React.FC = () => {
                 // If the header row is not intersecting (scrolled out of view), show the sticky header (collapse main)
                 // We use a small threshold or negative margin to trigger it slightly before it's fully gone if desired
                 // or just when it leaves.
-                // boundingClientRect.top < 0 checks if it's scrolled *above* the viewport
-                const isScrolledPast = !entry.isIntersecting && entry.boundingClientRect.top < 0;
+                // boundingClientRect.top < 100 checks if it's scrolled *above* the viewport (accounting for top bar offset)
+                const isScrolledPast = !entry.isIntersecting && entry.boundingClientRect.top < 100;
                 setIsHeaderCollapsed(isScrolledPast);
             },
             {
