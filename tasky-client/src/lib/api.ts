@@ -86,8 +86,13 @@ export const api = {
 
         let groupId = baseSheet.group_id;
         if (!groupId) {
+            // If this sheet has no group ID, it's the progenitor.
+            // We need to check if we already minted a group ID? 
+            // BE CAREFUL: If parallel requests come in, they might all try to mint a new GUID.
+            // Best to just mint one and save it.
+            // If we already have multiple sheets for today (race condition result), they will have invalid group IDs or diff group IDs.
+            // We can't easily fix the group ID race here without a transaction or lock, but the client side lock 'isCreatingRef' helps significantly.
             groupId = crypto.randomUUID();
-            // Retroactively fix base sheet?
             await supabase.from('sheets').update({ group_id: groupId }).eq('id', baseSheetId);
         }
 
@@ -118,6 +123,59 @@ export const api = {
 
         if (error) throw error;
         return data as Sheet;
+    },
+
+    // Cleanup helper for the user's issue
+    cleanupDuplicates: async () => {
+        // Find all sheets created TODAY
+        const today = new Date().toISOString().split('T')[0];
+
+        // Fetch all sheets for today
+        const { data: sheets, error } = await supabase
+            .from('sheets')
+            .select('*')
+            .eq('target_date', today);
+
+        if (error || !sheets) return;
+
+        // Group by group_id (or title if group_id is messy)
+        // Since the bug causes multiple sheets with potentially DIFFERENT group_ids (if base had none),
+        // we might need togroup by Created Time + Title?
+        // Let's assume most have the same group_id if the base sheet had one.
+        // If the base sheet didn't have one, we have a mess of new group IDs.
+
+        // Strategy: Group by Title + Content length?
+        // Simple strategy: Group by Title. Keep the one with the LATEST created_at. Delete others.
+        // This is destructive but effective for "phantom pills".
+
+        const groups = new Map<string, Sheet[]>();
+
+        sheets.forEach(s => {
+            const key = s.title; // Group by title for today
+            if (!groups.has(key)) groups.set(key, []);
+            groups.get(key)?.push(s);
+        });
+
+        const idsToDelete: number[] = [];
+
+        for (const [_title, groupSheets] of groups.entries()) {
+            if (groupSheets.length > 1) {
+                // Sort by created_at descending (keep latest)
+                // Or keep the one with most content?
+                groupSheets.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+                // Keep the first one (latest)
+                // Delete the rest
+                for (let i = 1; i < groupSheets.length; i++) {
+                    idsToDelete.push(groupSheets[i].id);
+                }
+            }
+        }
+
+        if (idsToDelete.length > 0) {
+            console.log("Cleaning up duplicate sheets:", idsToDelete);
+            await supabase.from('sheets').delete().in('id', idsToDelete);
+        }
     },
 
     getSheetHistory: async (id: number) => {

@@ -31,6 +31,7 @@ const SheetView: React.FC = () => {
 
     const editorRef = React.useRef<EditorHandle>(null);
     const headerRef = React.useRef<HTMLDivElement>(null);
+    const isCreatingRef = React.useRef(false); // Lock to prevent race condition
 
     // Calculate stats from HTML content
     const calculateStats = (html: string) => {
@@ -46,6 +47,7 @@ const SheetView: React.FC = () => {
         if (id) {
             setLoading(true);
             setIsVirtualToday(false);
+            isCreatingRef.current = false; // Reset lock on id change
 
             api.getSheet(Number(id))
                 .then(data => {
@@ -82,7 +84,9 @@ const SheetView: React.FC = () => {
 
     // Helper to "Realize" the virtual sheet (Create it in DB)
     const realizeSheet = async (initialTitle: string, initialContent: string, initialColor: string) => {
-        if (!sheet) return null;
+        if (!sheet || isCreatingRef.current) return null;
+
+        isCreatingRef.current = true; // Lock
 
         // Use the API to create a NEW sheet in the same group
         try {
@@ -94,14 +98,14 @@ const SheetView: React.FC = () => {
 
             // Let's modify usage of api.createSheet or add a new method?
             // Actually, best to update `api.ts` to strictly support "Create Next in Group" or we do it efficiently here.
-            // Let's assume we can pass group_id to createSheet (we'll need to update api signature if not present, 
+            // Let's assume we can pass group_id to createSheet (we'll need to update api signature if not present,
             // but for now let's check what `createSheet` accepts).
-            // Looking at api.ts, createSheet takes (title). 
+            // Looking at api.ts, createSheet takes (title).
             // We need to update api.ts to accept optional params.
 
             // For this step, I'll update api.createSheet call assuming I will update the API signature in next step.
             // OR I can use supabase directly here if really needed, but cleaner to update API.
-            // I'll call `api.createNextSheet(sheet.id, ...)`? 
+            // I'll call `api.createNextSheet(sheet.id, ...)`?
 
             // Let's implement `api.continueSheet(baseSheetId, ...)` or similar.
             // For now, let's call a new method we will add: `api.createDailyFollowUp(baseSheetId, title, content)`
@@ -117,6 +121,7 @@ const SheetView: React.FC = () => {
             return newSheet;
         } catch (e) {
             console.error("Failed to create daily sheet", e);
+            isCreatingRef.current = false; // Unlock on error
             return null;
         }
     };
@@ -215,6 +220,9 @@ const SheetView: React.FC = () => {
 
     // Setup Intersection Observer for sticky header
     useEffect(() => {
+        // Run specific cleanup if needed (One time)
+        api.cleanupDuplicates();
+
         const observer = new IntersectionObserver(
             ([entry]) => {
                 // If the header row is not intersecting (scrolled out of view), show the sticky header (collapse main)
